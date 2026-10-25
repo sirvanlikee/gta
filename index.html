@@ -41,7 +41,27 @@
 <li data-i18n="ctl_wanted">⭐ دزدیدن ماشین و زدن به عابر و پلیس، ستاره تعقیب می‌آورد</li>
 </ul>
 <button class="big" id="startBtn" data-i18n="start">▶ شروع بازی</button>
-<p style="font-size:13px;color:#aaa">v7.0 • Three.js • GitHub Pages • HTML + CSS + JavaScript + Three.js + Python</p>
+<button class="big" id="menuSettingsBtn" style="background:linear-gradient(180deg,#8ea2b8,#5a6d80)">⚙️ تنظیمات</button>
+<button class="big" id="helpBtn" style="background:linear-gradient(180deg,#8ea2b8,#5a6d80)">❓ راهنما</button>
+<div id="helpSection" style="display:none;text-align:right;line-height:2;font-size:14px"><p>🎯 هدف: ماموریت ۱ را با رفتن به نشان زرد انجام بده، بعد ماشین اسپرت قرمز را بدزد و به جنوب‌شرق ببر، بعد ۵ سکه جمع کن.</p><p>🚗 رانندگی: گاز را نگه دار تا سرعت بگیرد؛ ماشین پارک‌شده در خیابان خلوت ستاره نمی‌آورد، ولی دزدی جلوی پلیس، ماشین در حال حرکت، یا زدن عابر ستاره می‌آورد.</p><p>⭐ فرار از پلیس: با ماشین سریع‌تر از پلیس هستی؛ از خیابان‌های فرعی برو تا ستاره‌ها کم شوند.</p></div>
+<p style="font-size:13px;color:#aaa">v8.0 • Three.js • GitHub Pages • HTML + CSS + JavaScript + Three.js + Python</p>
+</div></div>
+<div id="pauseMenu"><div class="card">
+<h2>⏸ توقف</h2>
+<p>بازی متوقف است. ادامه بده یا از اول شروع کن.</p>
+<button class="big" id="resumeBtn">▶ ادامه</button>
+<button class="big" id="restartBtn" style="background:linear-gradient(180deg,#8ea2b8,#5a6d80)">↻ شروع دوباره</button>
+<button class="big" id="pauseSettingsBtn" style="background:linear-gradient(180deg,#8ea2b8,#5a6d80)">⚙️ تنظیمات</button>
+<button class="big" id="menuBtn" style="background:linear-gradient(180deg,#8ea2b8,#5a6d80)">🏠 منوی اصلی</button>
+</div></div>
+<div id="settingsOverlay"><div class="card">
+<h2>⚙️ تنظیمات</h2>
+<label class="setrow">کیفیت گرافیک <select id="qualitySelect"><option value="high">بالا</option><option value="low">پایین (سریع‌تر)</option></select></label>
+<label class="setrow">صدا <select id="soundSelect"><option value="on">روشن</option><option value="off">خاموش</option></select></label>
+<label class="setrow">زبان <select id="langSelect"><option value="fa">فارسی</option><option value="en">English</option><option value="ar">العربية</option></select></label>
+<label class="setrow">دوربین <select id="cameraSelect"><option value="normal">معمولی</option><option value="near">نزدیک</option><option value="far">دور</option></select></label>
+<label class="setrow"><input type="checkbox" id="minimapCheck" checked> نمایش نقشه</label>
+<button class="big" id="closeSettingsBtn">✓ ذخیره و بازگشت</button>
 </div></div>
 <script type="module" src="js/main.js"></script>
 </body>
