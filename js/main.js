@@ -36,6 +36,8 @@ function buildCity() {
   for (const rx of vRoads) for (let z = 8; z < WORLD_H; z += 14) box(0.6, 0.05, 6, std([0.96, 0.84, 0.25]), rx, 0.14, z);
   for (const rz of hRoads) for (let x = 8; x < WORLD_W; x += 14) box(6, 0.05, 0.6, std([0.96, 0.84, 0.25]), x, 0.14, rz);
   for (const p of parks) box(p.w, 0.2, p.d, std([0.18, 0.50, 0.22]), p.x, 0.1, p.z);
+  for (let xi = 0; xi < vRoads.length - 1; xi++) for (let yi = 0; yi < hRoads.length - 1; yi++) { const x0 = vRoads[xi] + 8.5, x1 = vRoads[xi+1] - 8.5, z0 = hRoads[yi] + 8.5, z1 = hRoads[yi+1] - 8.5; box(x1-x0, 0.2, z1-z0, std([0.72, 0.70, 0.64]), (x0+x1)/2, 0.1, (z0+z1)/2); }
+  const sunDisc = new THREE.Mesh(new THREE.SphereGeometry(16, 16, 12), new THREE.MeshBasicMaterial({ color: 0xffd23f })); sunDisc.position.set(330, 75, 170); scene.add(sunDisc);
   for (const b of buildings) {
     const side = new THREE.MeshStandardMaterial({ map: winTex(b.c), roughness: 0.9 });
     const roof = std([Math.max(0, b.c[0]-0.15), Math.max(0, b.c[1]-0.15), Math.max(0, b.c[2]-0.15)]);
@@ -88,6 +90,9 @@ function spawnCars() {
   cars = []; const cols = [[0.85,0.20,0.20],[0.95,0.85,0.15],[0.95,0.95,0.95],[0.25,0.28,0.32],[1,0.44,0.26],[0.15,0.65,0.60],[0.67,0.28,0.74]];
   for (let i = 0; i < 12; i++) { const rx = vRoads[i % vRoads.length]; cars.push(makeCar(rx+5, 30+(i*19)%200, Math.PI/2, cols[i%cols.length], i===3 ? 'sport' : 'sedan', false, false)); }
   cars.push(makeCar(125, 90, 0, [0.85,0.20,0.20], 'sport', false, false));
+  cars.push(makeCar(47, 70, Math.PI/2, [0.95,0.95,0.95], 'sedan', false, false));
+  cars.push(makeCar(53, 110, -Math.PI/2, [1,0.44,0.26], 'sedan', false, false));
+  cars.push(makeCar(47, 135, Math.PI/2, [0.15,0.65,0.60], 'taxi', false, false));
   for (let i = 0; i < 10; i++) {
     if (i % 2 === 0) { const rx = vRoads[i % vRoads.length]; cars.push(makeCar(rx+(i%4<2?-3:3), 20+Math.random()*220, i%4<2 ? Math.PI/2 : -Math.PI/2, cols[(i+2)%cols.length], 'sedan', true, false)); }
     else { const rz = hRoads[i % hRoads.length]; cars.push(makeCar(20+Math.random()*320, rz+(i%4<2?-3:3), i%4<2 ? 0 : Math.PI, cols[(i+3)%cols.length], 'taxi', true, false)); }
@@ -98,6 +103,9 @@ function spawnPeds() {
   if (scene) clearMeshes(peds);
   const pc = [[0.85,0.2,0.2],[0.08,0.4,0.75],[0.48,0.12,0.65],[0,0.54,0.48],[0.96,0.49,0],[0.22,0.28,0.31]]; peds = [];
   for (let i = 0; i < 22; i++) { const rx = vRoads[i % vRoads.length]; peds.push({ x: rx+(Math.random()<.5?-11:11), z: 20+Math.random()*220, tx: rx, tz: 20+Math.random()*220, speed: 1.6, down: 0, c: pc[i%pc.length], angle: 0 }); }
+  peds.push({ x: 55, z: 85, tx: 55, tz: 110, speed: 1.6, down: 0, c: pc[0], angle: 0 });
+  peds.push({ x: 45, z: 95, tx: 45, tz: 70, speed: 1.6, down: 0, c: pc[1], angle: 0 });
+  peds.push({ x: 58, z: 100, tx: 58, tz: 120, speed: 1.6, down: 0, c: pc[2], angle: 0 });
   if (scene) for (const p of peds) p.mesh = makePersonMesh(p.x, p.z, p.c, false);
 }
 function spawnCash() {
@@ -138,7 +146,7 @@ $('startBtn').addEventListener('click', () => {
     if (!renderer) {
       renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true }); renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.setSize(innerWidth, innerHeight);
       renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.1;
-      scene = new THREE.Scene(); camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.5, 600); buildCity(); playerMesh = makePersonMesh(player.x, player.z, [0.95, 0.95, 0.95], true);
+      scene = new THREE.Scene(); camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.5, 600); buildCity(); playerMesh = makePersonMesh(player.x, player.z, [0.95, 0.95, 0.95], true);
     }
     threeMode = true;
   } catch (e) { threeMode = false; useIso = true; cv.style.display = 'none'; const ic = $('iso'); ic.style.display = 'block'; ic.width = innerWidth; ic.height = innerHeight; isoCtx = ic.getContext('2d'); }
@@ -206,13 +214,13 @@ function drawMini() {
   for (const pc of police) { mc.fillStyle = '#448aff'; mc.beginPath(); mc.arc(pc.x*sx, pc.z*sy, 3, 0, 7); mc.fill(); }
   mc.fillStyle = '#fff'; mc.beginPath(); mc.arc(player.x*sx, player.z*sy, 4, 0, 7); mc.fill();
 }
-let camPos = new THREE.Vector3(50, 10, 75);
+let camPos = new THREE.Vector3(28, 12, 90);
 function syncThree() {
   const fx = Math.cos(player.angle), fz = Math.sin(player.angle);
-  const dist = player.car ? 17 : 13, height = player.car ? 9 : 7.5;
+  const dist = player.car ? 26 : 22, height = player.car ? 14 : 12;
   const tx = player.x - fx*dist, tz = player.z - fz*dist;
   const want = new THREE.Vector3(tx, height, tz); camPos.lerp(want, 0.08);
-  camera.position.copy(camPos); camera.lookAt(player.x + fx*4, 1.5, player.z + fz*4);
+  camera.position.copy(camPos); camera.lookAt(player.x + fx*6, 2.5, player.z + fz*6);
   sun.position.set(player.x + 60, 90, player.z + 40); sun.target.position.set(player.x, 0, player.z); sun.target.updateMatrixWorld();
   if (playerMesh) { playerMesh.position.set(player.x, 0, player.z); playerMesh.rotation.y = -player.angle; playerMesh.visible = !player.car && !player.dead; playerMesh.rotation.z = player.speed > 0.5 ? Math.sin(frame*0.3)*0.06 : 0; }
   for (const c of [...cars, ...police]) if (c.mesh) { c.mesh.position.set(c.x, 0, c.z); c.mesh.rotation.y = -c.angle; if (c.mesh.userData.bar) { const fl = Math.floor(frame/8) % 2 === 0; c.mesh.userData.bar.material.color.set(fl ? 0xff1744 : 0x2979ff); c.mesh.userData.bar.material.emissive.set(fl ? 0xff1744 : 0x2979ff); } }
