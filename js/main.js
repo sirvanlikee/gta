@@ -7,6 +7,21 @@ const $ = id => document.getElementById(id);
 const cv = $('gl');
 let saved = {}; try { saved = JSON.parse(localStorage.getItem('shahrAzad3d') || '{}'); } catch (e) {}
 const player = { x: 50, z: 90, angle: 0, speed: 0, hp: 100, money: saved.money || 0, car: null, wanted: 0, dead: false };
+let settings = { quality: 'high', sound: true, lang: 'fa', minimap: true, camera: 'normal' };
+try { const s = JSON.parse(localStorage.getItem('shahrAzadSettings') || '{}'); settings = Object.assign(settings, s); } catch (e) {}
+function camScale() { return settings.camera === 'far' ? 1.25 : settings.camera === 'near' ? 0.8 : 1.0; }
+function applySettings() {
+  try { localStorage.setItem('shahrAzadSettings', JSON.stringify(settings)); } catch (e) {}
+  if (typeof soundOn !== 'undefined') soundOn = !!settings.sound;
+  const mini = $('mini'); if (mini) mini.style.display = settings.minimap ? 'block' : 'none';
+  if (typeof renderer !== 'undefined' && renderer) { renderer.setPixelRatio(settings.quality === 'low' ? 1 : Math.min(devicePixelRatio, 2)); renderer.shadowMap.enabled = settings.quality !== 'low'; if (sun) sun.castShadow = settings.quality !== 'low'; }
+  const q = $('qualitySelect'); if (q) q.value = settings.quality;
+  const so = $('soundSelect'); if (so) so.value = settings.sound ? 'on' : 'off';
+  const la = $('langSelect'); if (la) la.value = settings.lang;
+  const ca = $('cameraSelect'); if (ca) ca.value = settings.camera;
+  const mc = $('minimapCheck'); if (mc) mc.checked = !!settings.minimap;
+  if (settings.lang) setLang(settings.lang);
+}
 let cars = [], peds = [], cash = [], police = [], frame = 0, running = false, paused = false, soundOn = true, crimeTimer = 0, hideTimer = 0, missionIdx = saved.missionIdx || 0, missionCash = 0, missionState = 'go', msgTimer = 0;
 let useIso = false, isoCtx = null, threeMode = false, renderer = null, scene = null, camera = null, sun = null, playerMesh = null, beaconMesh = null, clouds = [];
 let msgTimer2 = 0;
@@ -68,6 +83,22 @@ function buildCity() {
     const roof = std([Math.max(0, b.c[0]-0.15), Math.max(0, b.c[1]-0.15), Math.max(0, b.c[2]-0.15)]);
     const m = new THREE.Mesh(new THREE.BoxGeometry(b.w, b.h, b.d), [side, side, roof, roof, side, side]); m.position.set(b.x, b.h/2, b.z); m.castShadow = true; m.receiveShadow = true; scene.add(m);
     box(b.w + 0.6, 0.5, b.d + 0.6, roof, b.x, b.h + 0.25, b.z);
+    box(1.6, 1.0, 1.6, std([0.55, 0.55, 0.58]), b.x - b.w/4, b.h + 1.0, b.z);
+    box(1.0, 0.8, 1.0, std([0.45, 0.45, 0.48]), b.x + b.w/4, b.h + 0.9, b.z + b.d/4);
+  }
+  for (const rx of vRoads) for (const rz of hRoads) {
+    for (let i = -3; i <= 3; i++) { box(0.7, 0.05, 3.5, std([0.9, 0.9, 0.88]), rx - 6 + i * 2, 0.16, rz + 12); box(3.5, 0.05, 0.7, std([0.9, 0.9, 0.88]), rx + 12, 0.16, rz - 6 + i * 2); }
+    box(0.3, 4, 0.3, std([0.2, 0.2, 0.2]), rx + 10, 2, rz + 10);
+    box(0.7, 1.6, 0.5, std([0.15, 0.15, 0.15]), rx + 10, 4.8, rz + 10);
+    box(0.5, 0.35, 0.1, new THREE.MeshStandardMaterial({ color: 0xff1744, emissive: 0xff1744, emissiveIntensity: 1 }), rx + 10, 5.2, rz + 10.3);
+    box(0.5, 0.35, 0.1, new THREE.MeshStandardMaterial({ color: 0xffd23f, emissive: 0xffd23f, emissiveIntensity: 0.6 }), rx + 10, 4.8, rz + 10.3);
+    box(0.5, 0.35, 0.1, new THREE.MeshStandardMaterial({ color: 0x2ecc71, emissive: 0x2ecc71, emissiveIntensity: 1 }), rx + 10, 4.4, rz + 10.3);
+  }
+  for (const bb of [{ x: 180, z: 18, txt: 'LOS SANTOS' }, { x: 90, z: 208, txt: 'SHAHR AZAD' }]) {
+    const cnv = document.createElement('canvas'); cnv.width = 512; cnv.height = 256; const g = cnv.getContext('2d'); const gr = g.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, '#1a2f4a'); gr.addColorStop(1, '#f2a65a'); g.fillStyle = gr; g.fillRect(0, 0, 512, 256); g.fillStyle = '#ffd23f'; g.font = 'bold 64px Tahoma'; g.textAlign = 'center'; g.fillText(bb.txt, 256, 140); g.fillStyle = '#fff'; g.font = 'bold 32px Tahoma'; g.fillText('★ ★ ★', 256, 190);
+    const tex = new THREE.CanvasTexture(cnv); tex.colorSpace = THREE.SRGBColorSpace;
+    box(0.5, 7, 0.5, std([0.2, 0.2, 0.2]), bb.x - 5, 3.5, bb.z); box(0.5, 7, 0.5, std([0.2, 0.2, 0.2]), bb.x + 5, 3.5, bb.z);
+    const board = new THREE.Mesh(new THREE.BoxGeometry(14, 7, 0.5), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.8 })); board.position.set(bb.x, 10.5, bb.z); board.castShadow = true; scene.add(board);
   }
   for (const tt of trees) {
     const tr = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.45, 2, 8), std([0.36, 0.25, 0.15])); tr.position.set(tt.x, 1, tt.z); tr.castShadow = true; scene.add(tr);
@@ -108,14 +139,15 @@ function makeCarMesh(c) {
 function makePersonMesh(x, z, c, isPlayer) {
   const g = new THREE.Group(); const skin = std([1, 0.8, 0.62], { roughness: 0.7 }); const jeans = std(isPlayer ? [0.15, 0.25, 0.55] : [0.13, 0.13, 0.15]);
   const legs = [];
-  for (const sx of [0.22, -0.22]) { const leg = new THREE.Mesh(new THREE.CapsuleGeometry(0.17, 0.55, 4, 10), jeans); leg.position.set(sx, 0.48, 0); leg.castShadow = true; g.add(leg); legs.push(leg); }
+  // Forward is local +X, so side-by-side means offset in Z, not X. The old X offsets put legs front-and-back, which made walking look sideways.
+  for (const sz of [0.22, -0.22]) { const leg = new THREE.Mesh(new THREE.CapsuleGeometry(0.17, 0.55, 4, 10), jeans); leg.position.set(0, 0.48, sz); leg.castShadow = true; g.add(leg); legs.push(leg); }
   const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.42, 0.55, 4, 12), std(c, { roughness: 0.8 })); torso.position.y = 1.18; torso.castShadow = true; g.add(torso);
   const arms = [];
-  for (const sx of [0.55, -0.55]) { const arm = new THREE.Mesh(new THREE.CapsuleGeometry(0.13, 0.5, 4, 10), std(c, { roughness: 0.8 })); arm.position.set(sx, 1.18, 0); g.add(arm); arms.push(arm); const hand = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 8), skin); hand.position.set(sx, 0.82, 0); g.add(hand); }
+  for (const sz of [0.55, -0.55]) { const arm = new THREE.Mesh(new THREE.CapsuleGeometry(0.13, 0.5, 4, 10), std(c, { roughness: 0.8 })); arm.position.set(0, 1.18, sz); g.add(arm); arms.push(arm); const hand = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 8), skin); hand.position.set(0, 0.82, sz); g.add(hand); }
   const head = new THREE.Mesh(new THREE.SphereGeometry(0.33, 18, 14), skin); head.position.y = 1.98; head.castShadow = true; g.add(head);
   for (const sz of [0.13, -0.13]) { const eye = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 8), std([0.05, 0.05, 0.05])); eye.position.set(0.31, 2.02, sz); g.add(eye); const ear = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 8), skin); ear.position.set(0, 1.98, sz > 0 ? 0.33 : -0.33); g.add(ear); }
   const nose = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 8), skin); nose.position.set(0.34, 1.92, 0); g.add(nose);
-  for (const sx of [0.22, -0.22]) { const shoe = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.14, 0.24), std([0.08, 0.08, 0.10])); shoe.position.set(sx, 0.07, 0.05); g.add(shoe); }
+  for (const sz of [0.22, -0.22]) { const shoe = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.14, 0.24), std([0.08, 0.08, 0.10])); shoe.position.set(0.05, 0.07, sz); g.add(shoe); }
   const hair = new THREE.Mesh(new THREE.SphereGeometry(0.34, 18, 12), std([0.12, 0.10, 0.08])); hair.scale.set(1, 0.65, 1); hair.position.set(0, 2.12, -0.04); g.add(hair);
   if (isPlayer) { const capTop = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.34, 0.12, 16), std([0.12, 0.12, 0.14])); capTop.position.y = 2.28; g.add(capTop); const brim = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.06, 0.35), std([0.12, 0.12, 0.14])); brim.position.set(0, 2.24, 0.35); g.add(brim); }
   g.userData.legs = legs; g.userData.arms = arms;
@@ -194,8 +226,24 @@ $('startBtn').addEventListener('click', () => {
   spawnCars(); spawnPeds(); spawnCash(); syncPolice();
   running = true; requestAnimationFrame(loop);
 });
-$('pauseBtn').addEventListener('click', () => { if (!running) return; paused = !paused; $('pauseBtn').textContent = paused ? '▶' : t('pause'); });
-$('soundBtn').addEventListener('click', () => { soundOn = !soundOn; $('soundBtn').textContent = soundOn ? t('sound') : '🔇'; });
+function openPause() { if (!running) return; paused = true; $('pauseMenu').style.display = 'flex'; }
+function closePause() { paused = false; $('pauseMenu').style.display = 'none'; }
+$('pauseBtn').addEventListener('click', openPause);
+$('resumeBtn').addEventListener('click', closePause);
+$('restartBtn').addEventListener('click', () => { closePause(); respawn(); player.money = 0; missionIdx = 0; updateHUD(); });
+$('menuBtn').addEventListener('click', () => { location.reload(); });
+$('soundBtn').addEventListener('click', () => { soundOn = !soundOn; settings.sound = soundOn; applySettings(); $('soundBtn').textContent = soundOn ? '🔊' : '🔇'; });
+addEventListener('keydown', e => { if ((e.key === 'p' || e.key === 'Escape') && running && $('menu').style.display === 'none') { if ($('pauseMenu').style.display === 'flex') closePause(); else openPause(); } });
+function openSettings() { applySettings(); $('settingsOverlay').style.display = 'flex'; }
+$('menuSettingsBtn').addEventListener('click', openSettings);
+$('pauseSettingsBtn').addEventListener('click', openSettings);
+$('closeSettingsBtn').addEventListener('click', () => { $('settingsOverlay').style.display = 'none'; });
+$('helpBtn').addEventListener('click', () => { const h = $('helpSection'); h.style.display = h.style.display === 'none' ? 'block' : 'none'; });
+$('qualitySelect').addEventListener('change', e => { settings.quality = e.target.value; applySettings(); });
+$('soundSelect').addEventListener('change', e => { settings.sound = e.target.value === 'on'; applySettings(); });
+$('langSelect').addEventListener('change', e => { settings.lang = e.target.value; setLang(settings.lang); applySettings(); updateHUD(); });
+$('cameraSelect').addEventListener('change', e => { settings.camera = e.target.value; applySettings(); });
+$('minimapCheck').addEventListener('change', e => { settings.minimap = e.target.checked; applySettings(); });
 addEventListener('resize', () => { if (useIso && isoCtx) { isoCtx.canvas.width = innerWidth; isoCtx.canvas.height = innerHeight; } else if (renderer) { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix(); } });
 function nearestCar(x, z) { let best = null, bd = 1e9; for (const c of cars) { const d = Math.hypot(c.x-x, c.z-z); if (d < bd) { bd = d; best = c; } } return { car: best, d: bd }; }
 function toggleCar() {
@@ -231,7 +279,8 @@ function update() {
     const c = player.car; c.speed += gas*1.7; if (gas === 0) c.speed *= 0.985; else c.speed *= 0.995; if (c.speed > c.max) c.speed = c.max; if (c.speed < -9) c.speed = -9;
     if (Math.abs(c.speed) > 0.5) c.angle += steer*0.045*(c.speed > 0 ? 1 : -1)*Math.min(1, Math.abs(c.speed)/8);
     const nx = c.x + Math.cos(c.angle)*c.speed*0.016, nz = c.z + Math.sin(c.angle)*c.speed*0.016; const bx = c.x, bz = c.z; collide(c, nx, nz, 1.9);
-    if (Math.hypot(c.x-bx, c.z-bz) < Math.abs(c.speed)*0.08 && Math.abs(c.speed) > 6) { c.speed *= -0.3; player.hp -= 2; beep(120, 120); }
+    // Crash check: expected movement per frame is speed*0.016, so only bounce back if movement is less than half of that (i.e. really blocked). The old 0.08 threshold was 5x the expected movement, so it reversed the car every frame above speed 6 — that was why gas barely moved the car.
+    if (Math.hypot(c.x-bx, c.z-bz) < Math.abs(c.speed)*0.008 && Math.abs(c.speed) > 6) { c.speed *= -0.3; player.hp -= 2; beep(120, 120); }
     player.x = c.x; player.z = c.z; player.angle = c.angle; player.speed = Math.abs(c.speed);
     for (const p of peds) if (p.down <= 0 && Math.hypot(p.x-c.x, p.z-c.z) < 2.6 && Math.abs(c.speed) > 3) { p.down = 300; setWanted(player.wanted+1); beep(180, 150); }
     for (const pc of police) if (Math.hypot(pc.x-c.x, pc.z-c.z) < 4 && Math.abs(c.speed) > 4) { setWanted(player.wanted+1); c.speed *= 0.4; player.hp -= 5; beep(100, 200); }
@@ -261,20 +310,21 @@ function drawMini() {
 let camPos = new THREE.Vector3(28, 12, 90);
 function syncThree() {
   const fx = Math.cos(player.angle), fz = Math.sin(player.angle);
-  const dist = player.car ? 26 : 22, height = player.car ? 14 : 12;
+  const dist = (player.car ? 26 : 22) * camScale(), height = (player.car ? 14 : 12) * camScale();
   const tx = player.x - fx*dist, tz = player.z - fz*dist;
   const want = new THREE.Vector3(tx, height, tz); camPos.lerp(want, 0.08);
   camera.position.copy(camPos); camera.lookAt(player.x + fx*6, 2.5, player.z + fz*6);
   sun.position.set(player.x + 60, 90, player.z + 40); sun.target.position.set(player.x, 0, player.z); sun.target.updateMatrixWorld();
-  if (playerMesh) { playerMesh.position.set(player.x, 0, player.z); playerMesh.rotation.y = -player.angle; playerMesh.visible = !player.car && !player.dead; if (playerMesh.userData.legs && player.speed > 0.5) { const s = Math.sin(frame*0.35); playerMesh.userData.legs[0].rotation.x = s*0.7; playerMesh.userData.legs[1].rotation.x = -s*0.7; playerMesh.userData.arms[0].rotation.x = -s*0.5; playerMesh.userData.arms[1].rotation.x = s*0.5; } else if (playerMesh.userData.legs) { for (const l of playerMesh.userData.legs) l.rotation.x = 0; for (const a of playerMesh.userData.arms) a.rotation.x = 0; } }
+  if (playerMesh) { playerMesh.position.set(player.x, 0, player.z); playerMesh.rotation.y = -player.angle; playerMesh.visible = !player.car && !player.dead; if (playerMesh.userData.legs && player.speed > 0.5) { const s = Math.sin(frame*0.35); playerMesh.userData.legs[0].rotation.z = s*0.7; playerMesh.userData.legs[1].rotation.z = -s*0.7; playerMesh.userData.arms[0].rotation.z = -s*0.5; playerMesh.userData.arms[1].rotation.z = s*0.5; } else if (playerMesh.userData.legs) { for (const l of playerMesh.userData.legs) l.rotation.z = 0; for (const a of playerMesh.userData.arms) a.rotation.z = 0; } }
   for (const c of [...cars, ...police]) if (c.mesh) { c.mesh.position.set(c.x, 0, c.z); c.mesh.rotation.y = -c.angle; if (c.mesh.userData.bar) { const fl = Math.floor(frame/8) % 2 === 0; c.mesh.userData.bar.material.color.set(fl ? 0xff1744 : 0x2979ff); c.mesh.userData.bar.material.emissive.set(fl ? 0xff1744 : 0x2979ff); } }
-  for (const p of peds) if (p.mesh) { p.mesh.position.set(p.x, 0, p.z); p.mesh.rotation.y = -p.angle; p.mesh.rotation.x = p.down > 0 ? Math.PI/2 : 0; p.mesh.position.y = p.down > 0 ? 0.4 : 0; if (p.mesh.userData.legs && p.down <= 0) { const s = Math.sin(frame*0.3 + p.x); p.mesh.userData.legs[0].rotation.x = s*0.6; p.mesh.userData.legs[1].rotation.x = -s*0.6; } }
+  for (const p of peds) if (p.mesh) { p.mesh.position.set(p.x, 0, p.z); p.mesh.rotation.y = -p.angle; p.mesh.rotation.z = p.down > 0 ? Math.PI/2 : 0; p.mesh.position.y = p.down > 0 ? 0.4 : 0; if (p.mesh.userData.legs && p.down <= 0) { const s = Math.sin(frame*0.3 + p.x); p.mesh.userData.legs[0].rotation.z = s*0.6; p.mesh.userData.legs[1].rotation.z = -s*0.6; } }
   for (const ca of cash) if (ca.mesh && !ca.taken) { ca.mesh.rotation.y += 0.05; ca.mesh.position.y = 1.0 + Math.sin(frame*0.08)*0.15; }
   const m = missions()[missionIdx];
   if (beaconMesh) { if (m && m.point) { beaconMesh.visible = true; beaconMesh.position.set(m.point.x, 0, m.point.z); beaconMesh.userData.dia.rotation.y += 0.04; } else beaconMesh.visible = false; }
   for (const cl of clouds) { cl.position.x += 0.03; if (cl.position.x > WORLD_W + 40) cl.position.x = -40; }
   drawMini();
 }
+applySettings();
 function loop() {
   if (!running) return; if (!paused && !player.dead) update();
   if (threeMode && renderer) { syncThree(); renderer.render(scene, camera); }
