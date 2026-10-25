@@ -61,29 +61,41 @@ function buildCity() {
   const dia = new THREE.Mesh(new THREE.OctahedronGeometry(1.6), new THREE.MeshStandardMaterial({ color: 0xffd23f, emissive: 0xffb300, emissiveIntensity: 1 })); dia.position.y = 15; beaconMesh.add(dia); beaconMesh.userData.dia = dia; scene.add(beaconMesh);
 }
 function makeCarMesh(c) {
-  const g = new THREE.Group(); const len = c.type === 'sport' ? 5.2 : 4.4, wid = 2.0;
-  const body = new THREE.Mesh(new THREE.BoxGeometry(len, 0.75, wid), std(c.color, { metalness: 0.35, roughness: 0.4 })); body.position.y = 0.62; body.castShadow = true; g.add(body);
-  const cab = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.65, 1.7), std([0.65, 0.85, 0.95], { metalness: 0.2, roughness: 0.2 })); cab.position.set(-0.3, 1.3, 0); cab.castShadow = true; g.add(cab);
-  const wg = new THREE.CylinderGeometry(0.38, 0.38, 0.3, 14); const wm = std([0.08, 0.08, 0.08]);
-  for (const sx of [1.6, -1.6]) for (const sz of [wid/2, -wid/2]) { const w = new THREE.Mesh(wg, wm); w.rotation.x = Math.PI/2; w.position.set(sx, 0.38, sz); g.add(w); }
-  const hl = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.3, 1.6), new THREE.MeshStandardMaterial({ color: 0xfff6c8, emissive: 0xfff2a0, emissiveIntensity: 1 })); hl.position.set(len/2, 0.65, 0); g.add(hl);
-  const tl = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.3, 1.6), new THREE.MeshStandardMaterial({ color: 0xff1744, emissive: 0xff1744, emissiveIntensity: 0.8 })); tl.position.set(-len/2, 0.65, 0); g.add(tl);
-  if (c.type === 'taxi') { const sign = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.25, 0.9), std([1, 0.85, 0])); sign.position.set(-0.3, 1.75, 0); g.add(sign); }
-  if (c.police) { const bar = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.22, 0.9), new THREE.MeshStandardMaterial({ color: 0xff1744, emissive: 0xff1744, emissiveIntensity: 1 })); bar.position.set(-0.3, 1.75, 0); g.add(bar); g.userData.bar = bar; }
+  const g = new THREE.Group(); const len = c.type === 'sport' ? 5.4 : 4.6, wid = 2.0;
+  const paint = c.police ? [0.95, 0.95, 0.95] : c.color;
+  const body = new THREE.Mesh(new THREE.BoxGeometry(len, 0.65, wid), std(paint, { metalness: 0.5, roughness: 0.3 })); body.position.y = 0.58; body.castShadow = true; g.add(body);
+  const nose = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.45, 1.9), std(paint, { metalness: 0.5, roughness: 0.3 })); nose.position.set(len/2 - 0.2, 0.5, 0); g.add(nose);
+  const grille = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.32, 1.3), std([0.1, 0.1, 0.12], { metalness: 0.6, roughness: 0.4 })); grille.position.set(len/2 + 0.06, 0.58, 0); g.add(grille);
+  const glass = new THREE.MeshStandardMaterial({ color: 0x16222e, metalness: 0.9, roughness: 0.08 });
+  const cab = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.6, 1.7), glass); cab.position.set(-0.3, 1.18, 0); cab.castShadow = true; g.add(cab);
+  const roof = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.12, 1.7), std(paint, { metalness: 0.5, roughness: 0.3 })); roof.position.set(-0.3, 1.52, 0); g.add(roof);
+  if (c.police) { for (const sz of [wid/2 - 0.05, -wid/2 + 0.05]) { const door = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.6, 0.06), std([0.08, 0.08, 0.10])); door.position.set(-0.3, 0.58, sz); g.add(door); } }
+  const wg = new THREE.CylinderGeometry(0.42, 0.42, 0.32, 18); const wm = std([0.08, 0.08, 0.08]);
+  const hub = new THREE.CylinderGeometry(0.2, 0.2, 0.34, 14); const hm = std([0.75, 0.75, 0.78], { metalness: 0.8, roughness: 0.25 });
+  for (const sx of [1.6, -1.6]) for (const sz of [wid/2, -wid/2]) { const w = new THREE.Mesh(wg, wm); w.rotation.x = Math.PI/2; w.position.set(sx, 0.42, sz); w.castShadow = true; g.add(w); const h = new THREE.Mesh(hub, hm); h.rotation.x = Math.PI/2; h.position.set(sx, 0.42, sz); g.add(h); }
+  for (const sz of [0.62, -0.62]) { const hl = new THREE.Mesh(new THREE.SphereGeometry(0.18, 12, 10), new THREE.MeshStandardMaterial({ color: 0xfff6c8, emissive: 0xfff2a0, emissiveIntensity: 1.2 })); hl.position.set(len/2, 0.65, sz); g.add(hl); const tl = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.28, 0.45), new THREE.MeshStandardMaterial({ color: 0xff1744, emissive: 0xff1744, emissiveIntensity: 0.9 })); tl.position.set(-len/2, 0.65, sz); g.add(tl); const mir = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.18, 0.14), std(paint, { metalness: 0.5, roughness: 0.3 })); mir.position.set(0.8, 1.15, sz > 0 ? wid/2 + 0.08 : -wid/2 - 0.08); g.add(mir); }
+  if (c.type === 'sport') { const sp = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.1, 1.9), std([0.1, 0.1, 0.1])); sp.position.set(-len/2 + 0.1, 1.0, 0); g.add(sp); }
+  if (c.type === 'taxi') { const sign = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.25, 0.9), std([1, 0.85, 0])); sign.position.set(-0.3, 1.65, 0); g.add(sign); }
+  if (c.police) { const bar = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.22, 0.9), new THREE.MeshStandardMaterial({ color: 0xff1744, emissive: 0xff1744, emissiveIntensity: 1 })); bar.position.set(-0.3, 1.65, 0); g.add(bar); g.userData.bar = bar; }
   c.mesh = g; scene.add(g); return g;
 }
 function makePersonMesh(x, z, c, isPlayer) {
-  const g = new THREE.Group();
-  const torso = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.0, 0.55), std(c)); torso.position.y = 1.0; torso.castShadow = true; g.add(torso);
-  const head = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.55, 0.55), std([1, 0.8, 0.62])); head.position.y = 1.8; g.add(head);
-  if (isPlayer) { const cap = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.15, 0.6), std([0.12, 0.12, 0.14])); cap.position.y = 2.12; g.add(cap); }
-  for (const sx of [0.25, -0.25]) { const leg = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.55, 0.4), std(isPlayer ? [0.15, 0.25, 0.55] : [0.13, 0.13, 0.15])); leg.position.set(sx, 0.28, 0); g.add(leg); }
+  const g = new THREE.Group(); const skin = std([1, 0.8, 0.62], { roughness: 0.7 }); const jeans = std(isPlayer ? [0.15, 0.25, 0.55] : [0.13, 0.13, 0.15]);
+  const legs = [];
+  for (const sx of [0.22, -0.22]) { const leg = new THREE.Mesh(new THREE.CapsuleGeometry(0.17, 0.55, 4, 10), jeans); leg.position.set(sx, 0.48, 0); leg.castShadow = true; g.add(leg); legs.push(leg); }
+  const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.42, 0.55, 4, 12), std(c, { roughness: 0.8 })); torso.position.y = 1.18; torso.castShadow = true; g.add(torso);
+  const arms = [];
+  for (const sx of [0.55, -0.55]) { const arm = new THREE.Mesh(new THREE.CapsuleGeometry(0.13, 0.5, 4, 10), std(c, { roughness: 0.8 })); arm.position.set(sx, 1.18, 0); g.add(arm); arms.push(arm); const hand = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 8), skin); hand.position.set(sx, 0.82, 0); g.add(hand); }
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.33, 18, 14), skin); head.position.y = 1.98; head.castShadow = true; g.add(head);
+  const hair = new THREE.Mesh(new THREE.SphereGeometry(0.34, 18, 12), std([0.12, 0.10, 0.08])); hair.scale.set(1, 0.65, 1); hair.position.set(0, 2.12, -0.04); g.add(hair);
+  if (isPlayer) { const capTop = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.34, 0.12, 16), std([0.12, 0.12, 0.14])); capTop.position.y = 2.28; g.add(capTop); const brim = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.06, 0.35), std([0.12, 0.12, 0.14])); brim.position.set(0, 2.24, 0.35); g.add(brim); }
+  g.userData.legs = legs; g.userData.arms = arms;
   g.position.set(x, 0, z); scene.add(g); return g;
 }
 function makeCashMesh(ca) {
   const m = new THREE.Mesh(new THREE.OctahedronGeometry(0.9), new THREE.MeshStandardMaterial({ color: 0xffc400, emissive: 0xffb300, emissiveIntensity: 0.9, metalness: 0.7, roughness: 0.2 })); m.position.set(ca.x, 1.0, ca.z); ca.mesh = m; scene.add(m); return m;
 }
-function makeCar(x, z, angle, color, type, traffic, policeCar) { const max = { sedan: 16, taxi: 16, sport: 21, police: 19 }[type] || 16; return { x, z, angle, speed: 0, color, type, traffic: !!traffic, police: !!policeCar, max }; }
+function makeCar(x, z, angle, color, type, traffic, policeCar) { const max = { sedan: 26, taxi: 26, sport: 36, police: 30 }[type] || 26; return { x, z, angle, speed: 0, color, type, traffic: !!traffic, police: !!policeCar, max }; }
 function clearMeshes(arr) { for (const o of arr) if (o.mesh) { scene.remove(o.mesh); o.mesh = null; } }
 function spawnCars() {
   if (scene) clearMeshes(cars); if (scene) clearMeshes(police); police = [];
@@ -162,7 +174,10 @@ function toggleCar() {
   if (player.car) { const c = player.car; player.car = null; c.speed = 0; player.x = c.x+4; player.z = c.z; player.angle = c.angle; $('actBtn').textContent = t('enter'); beep(300, 80); return; }
   const { car, d } = nearestCar(player.x, player.z);
   if (car && d < 6) {
-    if (car.traffic) setWanted(player.wanted+1); else if (car.police) setWanted(player.wanted+2); else setWanted(Math.max(player.wanted, 1));
+    if (car.police) setWanted(player.wanted+2);
+    else if (car.traffic) setWanted(player.wanted+1);
+    else if (police.some(pc => Math.hypot(pc.x-player.x, pc.z-player.z) < 40)) setWanted(player.wanted+1);
+    // parked car in an empty street: no wanted — only stealing in front of police, hijacking a moving car, or hitting a pedestrian brings police
     player.car = car; car.traffic = false; $('actBtn').textContent = t('exit'); beep(440, 100);
     if (missions()[missionIdx] && missions()[missionIdx].needSport && car.type === 'sport' && car.color[0] > 0.8) missionState = 'deliver';
   } else showMsg('—', 1200);
@@ -184,7 +199,7 @@ function update() {
   if (joy.active) { if (joy.dy < -0.3) gas = 1; if (joy.dy > 0.3) gas = -1; if (joy.dx < -0.3) steer = -1; if (joy.dx > 0.3) steer = 1; }
   if (keys[' ']) gas = gas > 0 ? 0.2 : -0.8;
   if (player.car) {
-    const c = player.car; c.speed += gas*0.9; if (gas === 0) c.speed *= 0.985; else c.speed *= 0.995; if (c.speed > c.max) c.speed = c.max; if (c.speed < -7) c.speed = -7;
+    const c = player.car; c.speed += gas*1.7; if (gas === 0) c.speed *= 0.985; else c.speed *= 0.995; if (c.speed > c.max) c.speed = c.max; if (c.speed < -9) c.speed = -9;
     if (Math.abs(c.speed) > 0.5) c.angle += steer*0.045*(c.speed > 0 ? 1 : -1)*Math.min(1, Math.abs(c.speed)/8);
     const nx = c.x + Math.cos(c.angle)*c.speed*0.016, nz = c.z + Math.sin(c.angle)*c.speed*0.016; const bx = c.x, bz = c.z; collide(c, nx, nz, 1.9);
     if (Math.hypot(c.x-bx, c.z-bz) < Math.abs(c.speed)*0.08 && Math.abs(c.speed) > 6) { c.speed *= -0.3; player.hp -= 2; beep(120, 120); }
@@ -192,13 +207,13 @@ function update() {
     for (const p of peds) if (p.down <= 0 && Math.hypot(p.x-c.x, p.z-c.z) < 2.6 && Math.abs(c.speed) > 3) { p.down = 300; setWanted(player.wanted+1); beep(180, 150); }
     for (const pc of police) if (Math.hypot(pc.x-c.x, pc.z-c.z) < 4 && Math.abs(c.speed) > 4) { setWanted(player.wanted+1); c.speed *= 0.4; player.hp -= 5; beep(100, 200); }
   } else {
-    const sp = 3.2;
+    const sp = 6.0;
     if (gas !== 0) { player.angle += steer*0.05; const nx = player.x + Math.cos(player.angle)*sp*0.016*gas, nz = player.z + Math.sin(player.angle)*sp*0.016*gas; collide(player, nx, nz, 0.9); player.speed = sp*Math.abs(gas); } else player.speed = 0;
     for (const ca of cash) if (!ca.taken && Math.hypot(ca.x-player.x, ca.z-player.z) < 2.2) { ca.taken = true; if (ca.mesh) ca.mesh.visible = false; player.money += ca.v; missionCash++; beep(880, 100); save(); if (cash.filter(c => !c.taken).length < 5) { const nc = { x: vRoads[Math.floor(Math.random()*vRoads.length)]+11, z: 20+Math.random()*220, v: 100, taken: false }; cash.push(nc); if (scene) makeCashMesh(nc); } }
   }
   for (const c of cars) { if (c === player.car || !c.traffic) continue; c.speed = 7; const nx = c.x + Math.cos(c.angle)*c.speed*0.016, nz = c.z + Math.sin(c.angle)*c.speed*0.016; if (nx < 5 || nx > WORLD_W-5 || nz < 5 || nz > WORLD_H-5) c.angle += Math.PI; else if (!onRoad(nx, nz) && onRoad(c.x, c.z)) c.angle += Math.PI/2; else { c.x = nx; c.z = nz; } }
   for (const p of peds) { if (p.down > 0) { p.down--; if (p.down === 0) { p.x = vRoads[Math.floor(Math.random()*vRoads.length)]; p.z = 20+Math.random()*220; } continue; } const dx = p.tx-p.x, dz = p.tz-p.z, d = Math.hypot(dx, dz) || 1; if (d < 3) { p.tx = p.x+(Math.random()-.5)*60; p.tz = p.z+(Math.random()-.5)*60; } else { let s = p.speed; const pd = player.car ? player.car : player; if (Math.hypot(p.x-pd.x, p.z-pd.z) < 12 && player.car && Math.abs(player.car.speed) > 4) { s = 6; p.tx = p.x+(p.x-pd.x)*2; p.tz = p.z+(p.z-pd.z)*2; } p.angle = Math.atan2(dz, dx); p.x += dx/d*s*0.016; p.z += dz/d*s*0.016; } }
-  for (const pc of police) { const dx = player.x-pc.x, dz = player.z-pc.z, d = Math.hypot(dx, dz) || 1; const want = Math.atan2(dz, dx); let diff = want-pc.angle; while (diff > Math.PI) diff -= 2*Math.PI; while (diff < -Math.PI) diff += 2*Math.PI; pc.angle += Math.max(-0.05, Math.min(0.05, diff)); pc.speed = 14; if (d > 4) { pc.x += Math.cos(pc.angle)*pc.speed*0.016; pc.z += Math.sin(pc.angle)*pc.speed*0.016; } else if (!player.car) { hideTimer++; if (hideTimer > 70) { player.money = Math.max(0, player.money-300); setWanted(0); hideTimer = 0; setTimeout(respawn, 1500); } } else player.hp -= 0.12; }
+  for (const pc of police) { const dx = player.x-pc.x, dz = player.z-pc.z, d = Math.hypot(dx, dz) || 1; const want = Math.atan2(dz, dx); let diff = want-pc.angle; while (diff > Math.PI) diff -= 2*Math.PI; while (diff < -Math.PI) diff += 2*Math.PI; pc.angle += Math.max(-0.05, Math.min(0.05, diff)); pc.speed = 20; if (d > 4) { pc.x += Math.cos(pc.angle)*pc.speed*0.016; pc.z += Math.sin(pc.angle)*pc.speed*0.016; } else if (!player.car) { hideTimer++; if (hideTimer > 180) { player.money = Math.max(0, player.money-300); setWanted(0); hideTimer = 0; setTimeout(respawn, 1500); } } else player.hp -= 0.05; }
   if (player.wanted > 0) { crimeTimer++; if (crimeTimer > 1500) { setWanted(player.wanted-1); crimeTimer = 0; } }
   const m = missions()[missionIdx];
   if (m) { if (m.needCash) { if (missionCash >= m.needCash) completeMission(); } else if (m.needSport) { if (missionState === 'deliver' && player.car && player.car.type === 'sport' && Math.hypot(player.x-m.point.x, player.z-m.point.z) < 12) completeMission(); } else if (m.point && Math.hypot(player.x-m.point.x, player.z-m.point.z) < 9) completeMission(); }
@@ -222,9 +237,9 @@ function syncThree() {
   const want = new THREE.Vector3(tx, height, tz); camPos.lerp(want, 0.08);
   camera.position.copy(camPos); camera.lookAt(player.x + fx*6, 2.5, player.z + fz*6);
   sun.position.set(player.x + 60, 90, player.z + 40); sun.target.position.set(player.x, 0, player.z); sun.target.updateMatrixWorld();
-  if (playerMesh) { playerMesh.position.set(player.x, 0, player.z); playerMesh.rotation.y = -player.angle; playerMesh.visible = !player.car && !player.dead; playerMesh.rotation.z = player.speed > 0.5 ? Math.sin(frame*0.3)*0.06 : 0; }
+  if (playerMesh) { playerMesh.position.set(player.x, 0, player.z); playerMesh.rotation.y = -player.angle; playerMesh.visible = !player.car && !player.dead; if (playerMesh.userData.legs && player.speed > 0.5) { const s = Math.sin(frame*0.35); playerMesh.userData.legs[0].rotation.x = s*0.7; playerMesh.userData.legs[1].rotation.x = -s*0.7; playerMesh.userData.arms[0].rotation.x = -s*0.5; playerMesh.userData.arms[1].rotation.x = s*0.5; } else if (playerMesh.userData.legs) { for (const l of playerMesh.userData.legs) l.rotation.x = 0; for (const a of playerMesh.userData.arms) a.rotation.x = 0; } }
   for (const c of [...cars, ...police]) if (c.mesh) { c.mesh.position.set(c.x, 0, c.z); c.mesh.rotation.y = -c.angle; if (c.mesh.userData.bar) { const fl = Math.floor(frame/8) % 2 === 0; c.mesh.userData.bar.material.color.set(fl ? 0xff1744 : 0x2979ff); c.mesh.userData.bar.material.emissive.set(fl ? 0xff1744 : 0x2979ff); } }
-  for (const p of peds) if (p.mesh) { p.mesh.position.set(p.x, 0, p.z); p.mesh.rotation.y = -p.angle; p.mesh.rotation.x = p.down > 0 ? Math.PI/2 : 0; p.mesh.position.y = p.down > 0 ? 0.4 : 0; }
+  for (const p of peds) if (p.mesh) { p.mesh.position.set(p.x, 0, p.z); p.mesh.rotation.y = -p.angle; p.mesh.rotation.x = p.down > 0 ? Math.PI/2 : 0; p.mesh.position.y = p.down > 0 ? 0.4 : 0; if (p.mesh.userData.legs && p.down <= 0) { const s = Math.sin(frame*0.3 + p.x); p.mesh.userData.legs[0].rotation.x = s*0.6; p.mesh.userData.legs[1].rotation.x = -s*0.6; } }
   for (const ca of cash) if (ca.mesh && !ca.taken) { ca.mesh.rotation.y += 0.05; ca.mesh.position.y = 1.0 + Math.sin(frame*0.08)*0.15; }
   const m = missions()[missionIdx];
   if (beaconMesh) { if (m && m.point) { beaconMesh.visible = true; beaconMesh.position.set(m.point.x, 0, m.point.z); beaconMesh.userData.dia.rotation.y += 0.04; } else beaconMesh.visible = false; }
