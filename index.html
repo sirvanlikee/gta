@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Shahr Azad: Los Santos — GTA-like 3D Game</title>
+<meta name="description" content="A professional multi-language GTA-like 3D open-world game. HTML, CSS, JavaScript, GLSL and Python.">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<canvas id="gl"></canvas>
+<canvas id="mini" width="130" height="96"></canvas>
+<div id="hud">
+<span class="pill"><span data-i18n="health">❤️ جان</span>: <span id="hp">100</span></span>
+<span class="pill"><span data-i18n="money">💰 پول</span>: <span id="money">0</span></span>
+<span class="pill"><span data-i18n="wanted">⭐ تعقیب</span>: <span id="stars">☆☆☆☆☆</span></span>
+<span class="pill"><span data-i18n="speed">🚗 سرعت</span>: <span id="speed">0</span></span>
+<span class="pill"><span data-i18n="mission">🏆 ماموریت</span>: <span id="mDone">0</span>/۳</span>
+</div>
+<div id="topBtns"><button id="pauseBtn" data-i18n="pause">⏸ توقف</button><button id="soundBtn" data-i18n="sound">🔊 صدا</button></div>
+<div id="langBtns"><button data-lang="fa">فارسی</button><button data-lang="en">English</button><button data-lang="ar">العربية</button></div>
+<div id="missionBar"><div id="missionText">—</div></div>
+<div id="msg"></div>
+<div id="joyBase"><div id="joyKnob"></div></div>
+<div id="actions">
+<button id="actBtn" data-i18n="enter">سوار شو</button>
+<button id="gasBtn" class="small" data-i18n="gas">گاز ▲</button>
+<button id="brakeBtn" class="small" data-i18n="brake">ترمز ▼</button>
+</div>
+<div id="menu"><div class="card">
+<h1 data-i18n="title">شهر آزاد: لس سانتوس</h1>
+<h2 data-i18n="subtitle">سه‌بعدی به سبک سن اندرس — غروب لس سانتوس، نخل و ماشین‌های رنگی</h2>
+<p data-i18n="desc">دوربین سوم‌شخص، شهر باز، سوار شدن به ماشین، پلیس و ماموریت. این پروژه با HTML و CSS و JavaScript و GLSL ساخته شده و رابط آن فارسی، انگلیسی و عربی است.</p>
+<ul>
+<li data-i18n="ctl_pc">🕹️ کیبورد: W گاز، S ترمز، A و D فرمان، E سوار و پیاده، Space ترمز دستی</li>
+<li data-i18n="ctl_mb">📱 موبایل: جوی‌استیک بالا = گاز، چپ و راست = فرمان؛ دکمه‌های سمت چپ گاز و ترمز و سوار شدن است</li>
+<li data-i18n="ctl_wanted">⭐ دزدیدن ماشین و زدن به عابر و پلیس، ستاره تعقیب می‌آورد</li>
+</ul>
+<button class="big" id="startBtn" data-i18n="start">▶ شروع بازی</button>
+<p style="font-size:13px;color:#aaa">v4.0 • WebGL • GitHub Pages • HTML + CSS + JavaScript + GLSL + Python</p>
+</div></div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
