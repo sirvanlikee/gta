@@ -1,6 +1,8 @@
 import { initGL, resizeGL, matPersp, matLook, drawBox, setCam, shadeCol, hashRand, gl } from './engine.js';
 import { WORLD_W, WORLD_H, vRoads, hRoads, buildings, parks, trees, palms, onRoad } from './world.js';
 import { t, setLang } from './i18n.js';
+import { drawIso } from './iso.js';
+let useIso = false, isoCtx = null;
 
 const cv = document.getElementById('gl');
 const $ = id => document.getElementById(id);
@@ -46,10 +48,32 @@ function bindHold(id, fn) { const el = $(id); el.addEventListener('touchstart', 
 bindHold('gasBtn', v => touchGas = v); bindHold('brakeBtn', v => touchBrake = v);
 $('actBtn').addEventListener('click', toggleCar);
 document.querySelectorAll('[data-lang]').forEach(b => b.addEventListener('click', () => { setLang(b.getAttribute('data-lang')); updateHUD(); }));
-$('startBtn').addEventListener('click', async () => { const ok = await initGL(cv); if (!ok) { $('missionText').textContent = 'WebGL is not available in this browser — please open in Chrome.'; return; } resizeGL(cv); $('menu').style.display = 'none'; if (innerWidth < 800) { jb.style.display = 'block'; $('actions').style.display = 'flex'; } spawnCars(); spawnPeds(); spawnCash(); syncPolice(); running = true; requestAnimationFrame(loop); });
+$('startBtn').addEventListener('click', async () => {
+  let ok = false; try { ok = await initGL(cv); } catch (e) { ok = false; }
+  if (ok) resizeGL(cv);
+  $('menu').style.display = 'none'; if (innerWidth < 800) { jb.style.display = 'block'; $('actions').style.display = 'flex'; }
+  spawnCars(); spawnPeds(); spawnCash(); syncPolice();
+  // WebGL test: on some phones WebGL creates a context but draws nothing (blank sky/ground colour).
+  // Draw one frame and read the centre pixel: if it is still the clear colour or empty, switch to the isometric 2D renderer, which works everywhere.
+  if (ok) {
+    try {
+      draw();
+      const pix = new Uint8Array(4);
+      gl.readPixels(Math.floor(cv.width/2), Math.floor(cv.height/2), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pix);
+      const isClear = pix[0] > 230 && pix[1] > 140 && pix[1] < 180 && pix[2] > 80 && pix[2] < 120;
+      const isZero = pix[0] === 0 && pix[1] === 0 && pix[2] === 0 && pix[3] === 0;
+      if (isClear || isZero) useIso = true;
+    } catch (e) { useIso = true; }
+  } else useIso = true;
+  if (useIso) {
+    cv.style.display = 'none';
+    const ic = $('iso'); ic.style.display = 'block'; ic.width = innerWidth; ic.height = innerHeight; isoCtx = ic.getContext('2d');
+  }
+  running = true; requestAnimationFrame(loop);
+});
 $('pauseBtn').addEventListener('click', () => { if (!running) return; paused = !paused; $('pauseBtn').textContent = paused ? '▶' : t('pause'); });
 $('soundBtn').addEventListener('click', () => { soundOn = !soundOn; $('soundBtn').textContent = soundOn ? t('sound') : '🔇'; });
-addEventListener('resize', () => resizeGL(cv));
+addEventListener('resize', () => { if (useIso && isoCtx) { isoCtx.canvas.width = innerWidth; isoCtx.canvas.height = innerHeight; } else resizeGL(cv); });
 function nearestCar(x, z) { let best = null, bd = 1e9; for (const c of cars) { const d = Math.hypot(c.x-x, c.z-z); if (d < bd) { bd = d; best = c; } } return { car: best, d: bd }; }
 function toggleCar() {
   if (!running || paused) return;
@@ -166,5 +190,5 @@ function drawMini() {
   for (const pc of police) { mc.fillStyle = '#448aff'; mc.beginPath(); mc.arc(pc.x*sx, pc.z*sy, 3, 0, 7); mc.fill(); }
   mc.fillStyle = '#fff'; mc.beginPath(); mc.arc(player.x*sx, player.z*sy, 4, 0, 7); mc.fill();
 }
-function loop() { if (!running) return; if (!paused && !player.dead) update(); if (gl) draw(); updateHUD(); requestAnimationFrame(loop); }
+function loop() { if (!running) return; if (!paused && !player.dead) update(); if (useIso) { if (isoCtx) drawIso(isoCtx, { player, cars, police, peds, cash, missions: missions(), missionIdx, frame }); drawMini(); } else if (gl) draw(); updateHUD(); requestAnimationFrame(loop); }
 updateHUD();
