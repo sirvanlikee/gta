@@ -10,7 +10,7 @@ for (let xi = 0; xi < vRoads.length - 1; xi++) for (let yi = 0; yi < hRoads.leng
   const x0 = vRoads[xi] + RW/2 + 2, x1 = vRoads[xi+1] - RW/2 - 2, z0 = hRoads[yi] + RW/2 + 2, z1 = hRoads[yi+1] - RW/2 - 2;
   const bw = (x1 - x0)/2 - 4, bd = (z1 - z0)/2 - 4;
   for (let a = 0; a < 2; a++) for (let b = 0; b < 2; b++) {
-    buildings.push({ x: x0 + (a+0.5)*(x1-x0)/2, z: z0 + (b+0.5)*(z1-z0)/2, w: bw, d: bd, h: 9 + ((bi*7) % 14), c: bColors[(bi++) % bColors.length] });
+    buildings.push({ x: x0 + (a+0.5)*(x1-x0)/2, z: z0 + (b+0.5)*(z1-z0)/2, w: bw, d: bd, h: 20 + ((bi*11) % 24), c: bColors[(bi++) % bColors.length] });
   }
 }
 export const parks = [];
