@@ -10,6 +10,7 @@
 </head>
 <body>
 <canvas id="gl"></canvas>
+<canvas id="iso" style="display:none;position:fixed;inset:0;width:100%;height:100%"></canvas>
 <canvas id="mini" width="130" height="96"></canvas>
 <div id="hud">
 <span class="pill"><span data-i18n="health">❤️ جان</span>: <span id="hp">100</span></span>
@@ -38,7 +39,7 @@
 <li data-i18n="ctl_wanted">⭐ دزدیدن ماشین و زدن به عابر و پلیس، ستاره تعقیب می‌آورد</li>
 </ul>
 <button class="big" id="startBtn" data-i18n="start">▶ شروع بازی</button>
-<p style="font-size:13px;color:#aaa">v4.0 • WebGL • GitHub Pages • HTML + CSS + JavaScript + GLSL + Python</p>
+<p style="font-size:13px;color:#aaa">v4.1 • WebGL + isometric 2D fallback • GitHub Pages • HTML + CSS + JavaScript + GLSL + Python</p>
 </div></div>
 <script type="module" src="js/main.js"></script>
 </body>
